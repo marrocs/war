@@ -1,0 +1,67 @@
+Como fazer um jogo de guerra estilo war?;
+
+É um jogo simultâneo ou por turno?
+
+
+-----> Como seria o jogo mais simples possivel? <-----
+
+    Dois jogadores, uma tabela de soldados e dinheiro
+
+        jogador |  A   |  B 
+        qtd SDs |  20  |  30
+        qtd din | 100  |  20  
+
+    O jogador a cada rodada decide se investe o dinheiro, se compra mais soldados ou se ataca;
+
+    Se investir, demora 2 turnos para receber o investimento de volta;
+
+    Se comprar mais soldados, tem mais soldados;
+
+    Se decidir atacar, o jogador escolhe uma QTD de soldados;
+        Os soldados de um são comparados com soldados do outro, quem tem maior QTD vence;
+
+    O jogo acaba quando todos os soldados morrem;
+
+
+    -> Como escrever isso?
+
+        1a entrada: QTD de jogadores;
+
+        2a entrada: Nomes dos jogadores;
+
+        Uma partida se inicia exibindo o nome dos jogadores e o nº da rodada;
+        
+        O nome do jogador 1, seus SDs e seu $$$ são exibidos;
+
+        Lista de ações é exibida (investir, recrutar ou lutar);
+
+        Jogador 1 entra sua ação;
+
+        O nome do jogador 2, seus SDs e seu $$$ são exibidos;
+
+        Lista de ações é exibida (investir, recrutar ou lutar);
+
+        Jogador 2 entra sua ação;
+
+        Se a ação
+
+
+
+
+
+O codigo deve receber a quantidade de jogadores;
+
+O jogador deve começar com uma quantidade X de civis (que vão arrecadar recursos) e uma Y de militares;
+
+    Aqui ja temos duas classes: Civis e militares;
+
+    Como escrever a classe Civis?;
+
+        Deve ser simples. Quantidade, atributo de força, atributo saude, atributo defesa;
+
+    Escrever uma classe Unidade, que deve descrever a menor peça possível no tabuleiro;
+
+        A classe Unidade irá herdar a Civil, Militar ou Infraestrutura outros atributos;
+
+        A classe Unidade deve ter: id, tipo (civil, militar ou infraestrutura), saude e posiçao no tabuleiro;
+
