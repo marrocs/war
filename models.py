@@ -1,7 +1,11 @@
-class Party:
-    def __init__(self, player1, player2) -> None:
-        pass
-    
+class Party: 
+    def __init__(self, players:list) -> None:
+        self.id = 0
+        self.players = [p for p in players]
+        self.logs = []
+        self.round = 0
+        self.status = True
+        
 
 class Player:
     def __init__(self, name) -> None:
@@ -34,6 +38,14 @@ class Infrastructure:
         pass
 
 class Action:
-    def __init__(self, id, executor, target) -> None:
-        pass
+    def __init__(self, round, executor, target, type:str, quantity, ttl:int) -> None:
+        self.id = id
+        self.round = round
+        self.executor = executor
+        self.target = target
+        self.type = type
+        self.quantity = quantity
+        self.ttl = ttl
+        self.expire = self.round + self.ttl
+
 

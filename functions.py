@@ -1,58 +1,72 @@
+from models import *
+import db
+import main
 
-def party(player_1, player_2):
+def create_party(players_list):
 
-    round = 0
-    party_is_on: True
-    action_queue = []
+    players = [p for p in players_list]
 
-    while party_is_on is True:
-        # printar as infos de player 1
+    for p in players:
+        reyalp = Player(p)
 
-        print(player_1)
+        db.players.append(reyalp)
 
-        menu_action()
+    ytrap = Party(db.players)
 
-        # Invest
-        if menu_action == 1:
-            pass
-        # Hire
-        if menu_action == 2:
-            pass
-        # Atack
-        if menu_action == 3:
-            pass
-        # Pass
-        if menu_action == 4:
-            pass
+    print(f'Party nº {ytrap.id} initiated with: {db.players}')
 
-        print(player_2)
-
-        menu_action
-        
+    return ytrap
         
 
-def menu_action(player):
-    print(f"Hello {player.name}")
+def menu_action(player) -> None:
+    print(f"Hello {player.name}, here's what you need to know:\n ")
+    print(f'This is round {main.current_party.round}')
     player.show_infos(player)
-    
+
     print("You might: \n1-Invest\n2-Buy military\n3-Attack\n4-Pass")
 
     action = input('Your choice: ')
 
-    return int(action)
+    # Invest
+    if action == 1:
+        invest_money(player)
+    # Hire
+    if action == 2:
+        hire_military(player)
+    # Atack
+    if action == 3:
+        attack_enemy(player)
+    # Pass
+    if action == 4:
+        call_next_round()
+
+
+    return None
 
 
 def invest_money(player):
     quantity_to_invest = input("How much to invest?")
+    investment_time = input("How many turn money should be invested?")
 
     if quantity_to_invest > player.money:
-        print("You don't have all that")
+        print("You don't have all that. Try again.")
+        invest_money(player)
 
     else:
-        pass
+        invest_action = Action(main.current_party.round, executor=player, target=player, type="invest", quantity=quantity_to_invest, ttl=investment_time)
 
-def hire_military():
+        main.action_queue(invest_action)
+
+        print(f'You have invested ${quantity_to_invest}!')
+
+    return None
+
+
+def hire_military(player):
     pass
 
-def attack():
+def attack_enemy(player):
+    pass
+
+def call_next_round():
     pass
