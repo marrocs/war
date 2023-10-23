@@ -4,8 +4,9 @@ class Party:
         self.players = [p for p in players]
         self.logs = []
         self.round = 0
-        self.status = True
-        
+        self.status = True  
+        self.winner = ""
+
 
 class Player:
     def __init__(self, name) -> None:
@@ -19,23 +20,6 @@ class Player:
     def show_infos(self) -> str:
         return f'Your money: {self.money}\nYour military: {self.military}'
 
-class Unity:
-    # The minimal entity on game. Must hold health,
-
-    def __init__(self, id, tipo, saude, posicao) -> None:
-        pass
-
-class Civilian:
-    def __init__(self) -> None:
-        pass
-
-class Military:
-    def __init__(self) -> None:
-        pass
-
-class Infrastructure:
-    def __init__(self) -> None:
-        pass
 
 class Action:
     def __init__(self, round, executor, target, type:str, quantity, ttl:int) -> None:
@@ -46,6 +30,29 @@ class Action:
         self.type = type
         self.quantity = quantity
         self.ttl = ttl
-        self.expire = self.round + self.ttl
+        self.exec_round = self.round + self.ttl
+
+
+# class Unity:
+#     # The minimal entity on game. Must hold health,
+
+#     def __init__(self, id, tipo, saude, posicao) -> None:
+#         pass
+
+# class Civilian:
+#     def __init__(self) -> None:
+#         pass
+
+
+# class Military:
+#     def __init__(self) -> None:
+#         pass
+
+
+# class Infrastructure:
+#     def __init__(self) -> None:
+#         pass
+
+
 
 

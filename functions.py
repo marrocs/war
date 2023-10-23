@@ -25,48 +25,77 @@ def menu_action(player) -> None:
 
     print("You might: \n1-Invest\n2-Buy military\n3-Attack\n4-Pass")
 
-    action = input('Your choice: ')
-
-    # Invest
-    if action == 1:
-        invest_money(player)
-    # Hire
-    if action == 2:
-        hire_military(player)
-    # Atack
-    if action == 3:
-        attack_enemy(player)
-    # Pass
-    if action == 4:
-        call_next_round()
-
-
     return None
 
 
-def invest_money(player):
-    quantity_to_invest = input("How much to invest?")
-    investment_time = input("How many turn money should be invested?")
+def invest(action):
 
-    if quantity_to_invest > player.money:
-        print("You don't have all that. Try again.")
-        invest_money(player)
+    invested_value = action.quantity
+    interest_rate = 1
+    time_investment = action.ttl
+    investment_return = invested_value * time_investment * interest_rate
+
+    action.executor.money += investment_return
+                
+    print(f'{action.executor} just received ${investment_return} back!')
+    
+    return None
+
+
+def hire(action):
+
+    quantity_to_hire = action.quantity
+    benefited = action.executor
+
+    benefited.military += quantity_to_hire
+    print(f"Good news. The {quantity_to_hire} soldiers you requested has arrived.")
+
+    return None
+
+def attack(action):
+    
+    offensive_player = action.executor
+    defensive_player = action.target
+    offensive_force = offensive_player.military
+    defensive_army = defensive_player.military
+
+    if defensive_army == 0:
+
+        print("ENDGAME")
+        exit()
 
     else:
-        invest_action = Action(main.current_party.round, executor=player, target=player, type="invest", quantity=quantity_to_invest, ttl=investment_time)
 
-        main.action_queue(invest_action)
+        if offensive_force > defensive_army:
+            
+            soldiers_survives = offensive_force - defensive_army
+            
+            defensive_player.military = 0
+            offensive_player.military = offensive_player.military + soldiers_survives
 
-        print(f'You have invested ${quantity_to_invest}!')
+            print(f"You win and {soldiers_survives} soldiers has returned from battlefield")
 
-    return None
+        else:
+            
+            soldiers_survives = 0
+            defense_result = defensive_player.military - offensive_force
+            offensive_player.military = offensive_player.military - offensive_force
 
+            defensive_player.military = defense_result
 
-def hire_military(player):
-    pass
+            print(f"You lost all the soldiers you sent")
 
-def attack_enemy(player):
-    pass
 
 def call_next_round():
-    pass
+    next()
+
+
+def queue_cleaner(queue):
+    for action in queue:
+
+        if action.exec_round == main.current_party.round:
+            action_in_execution = action.type
+
+            action_in_execution(action)
+        else:
+            continue
