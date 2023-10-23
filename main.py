@@ -8,18 +8,23 @@ global current_party
 
 players_list = []
 action_queue = []
+current_party = ""
 
 
 def main():
-    
+
+
     print('-----> Welcome to War Games <-----')
+
+
 
     # Get players
 
     player_1 = input("Player 1 name: ")
     player_2 = input("Player 2 name: ")
     
-    players_list.append(player_1, player_2)
+    players_list.append(player_1)
+    players_list.append(player_2)
     
     # Initiate the party
     current_party = create_party(players_list)

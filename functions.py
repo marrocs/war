@@ -11,11 +11,11 @@ def create_party(players_list):
 
         db.players.append(reyalp)
 
-    ytrap = Party(db.players)
+    main.current_party = Party(db.players)
 
-    print(f'Party nº {ytrap.id} initiated with: {db.players}')
+    print(f'Party nº {main.current_party.id} initiated with: {db.players}')
 
-    return ytrap
+    return None
         
 
 def menu_action(player) -> None:
@@ -69,7 +69,7 @@ def attack(action):
         if offensive_force > defensive_army:
             
             soldiers_survives = offensive_force - defensive_army
-            
+
             defensive_player.military = 0
             offensive_player.military = offensive_player.military + soldiers_survives
 

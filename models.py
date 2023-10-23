@@ -7,6 +7,16 @@ class Party:
         self.status = True  
         self.winner = ""
 
+    def __repr__(self):
+        return {
+        "id":self.id,
+        "players":self.players, 
+        "logs":self.logs,
+        "round":self.round,
+        "status":self.status,
+        "winner":self.winner
+        }
+
 
 class Player:
     def __init__(self, name) -> None:
