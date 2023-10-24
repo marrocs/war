@@ -1,6 +1,8 @@
+party_id_counter = 0
+
 class Party: 
     def __init__(self, players:list) -> None:
-        self.id = 0
+        self.id = party_id_counter
         self.players = [p for p in players]
         self.logs = []
         self.round = 0
@@ -8,16 +10,11 @@ class Party:
         self.winner = ""
 
     def __repr__(self):
-        return {
-        "id":self.id,
-        "players":self.players, 
-        "logs":self.logs,
-        "round":self.round,
-        "status":self.status,
-        "winner":self.winner
-        }
+        return f"This party has: ID {self.id}, players: [{self.players}], logs: [{self.logs}], rounds: {self.round}, status: {self.status}, winner: {self.winner}"
 
+    party_id_counter += 1
 
+    
 class Player:
     def __init__(self, name) -> None:
         self.name = name

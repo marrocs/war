@@ -8,8 +8,7 @@ global current_party
 
 players_list = []
 action_queue = []
-current_party = ""
-
+current_party = []
 
 def main():
 
@@ -27,9 +26,9 @@ def main():
     players_list.append(player_2)
     
     # Initiate the party
-    current_party = create_party(players_list)
+    this_party = create_party(players_list)
 
-    while current_party.status is True:
+    while this_party.status is True:
         
         # Get action for every player
         for turn_player in db.players:
@@ -41,7 +40,7 @@ def main():
             # Invest
             if action == 1:
                 quantity_to_invest = input("How much to invest?")
-                investment_time = input("How many turn money should be invested?")
+                investment_time = input("How many turns money should be invested?")
 
                 while quantity_to_invest > turn_player.money:
 
@@ -104,7 +103,7 @@ def main():
         
         # Read and execute action queue
         queue_cleaner(action_queue)
-        current_party.round += 1
+        current_party[0].round += 1
 
 if __name__ == '__main__':
     main()

@@ -1,1 +1,2 @@
+# list de Objetos
 players = []

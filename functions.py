@@ -11,19 +11,19 @@ def create_party(players_list):
 
         db.players.append(reyalp)
 
-    main.current_party = Party(db.players)
+    main.current_party.append(Party(db.players))
 
-    print(f'Party nº {main.current_party.id} initiated with: {db.players}')
+    print(f'Party nº {main.current_party[0].id} initiated with: {db.players}')
 
-    return None
+    return main.current_party[0]
         
 
 def menu_action(player) -> None:
-    print(f"Hello {player.name}, here's what you need to know:\n ")
-    print(f'This is round {main.current_party.round}')
-    player.show_infos(player)
+    print(f"\n\nHello {player.name}, here's what you need to know:\n ")
+    print(f'This is round {main.current_party[0].round}\n\n')
+    player.show_infos()
 
-    print("You might: \n1-Invest\n2-Buy military\n3-Attack\n4-Pass")
+    print("You might: \n\n1-Invest\n2-Buy military\n3-Attack\n4-Pass\n\n")
 
     return None
 
