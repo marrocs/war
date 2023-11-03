@@ -25,7 +25,10 @@ class Player:
         return f'Player: {self.name}\nMoney:{self.money}\nMilitary: {self.military}'
     
     def show_infos(self) -> str:
-        return f'Your money: {self.money}\nYour military: {self.military}'
+
+        print(f'Your money: {self.money}\nYour military: {self.military}')
+        
+        return None
 
 
 class Action:
@@ -37,7 +40,7 @@ class Action:
         self.type = type
         self.quantity = quantity
         self.ttl = ttl
-        self.exec_round = self.round + self.ttl
+        self.exec_round = int(self.round) + int(self.ttl)
 
 
 # class Unity:

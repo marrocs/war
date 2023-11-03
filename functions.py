@@ -23,7 +23,7 @@ def menu_action(player) -> None:
     print(f'This is round {main.current_party[0].round}\n\n')
     player.show_infos()
 
-    print("You might: \n\n1-Invest\n2-Buy military\n3-Attack\n4-Pass\n\n")
+    print("\n\nYou might: \n\n1-Invest\n2-Buy military\n3-Attack\n4-Pass\n\n")
 
     return None
 
@@ -33,7 +33,7 @@ def invest(action):
     invested_value = action.quantity
     interest_rate = 1
     time_investment = action.ttl
-    investment_return = invested_value * time_investment * interest_rate
+    investment_return = int(invested_value) * int(time_investment) * int(interest_rate)
 
     action.executor.money += investment_return
                 
@@ -44,10 +44,11 @@ def invest(action):
 
 def hire(action):
 
-    quantity_to_hire = action.quantity
+    quantity_to_hire = int(action.quantity)
     benefited = action.executor
+    actual_num_troops = int(benefited.military)
 
-    benefited.military += quantity_to_hire
+    benefited.military = str(quantity_to_hire + actual_num_troops)
     print(f"Good news. The {quantity_to_hire} soldiers you requested has arrived.")
 
     return None
@@ -59,43 +60,55 @@ def attack(action):
     offensive_force = offensive_player.military
     defensive_army = defensive_player.military
 
-    if defensive_army == 0:
+    if int(defensive_army) == 0:
 
         print("ENDGAME")
         exit()
 
     else:
 
-        if offensive_force > defensive_army:
+        if int(offensive_force) > int(defensive_army):
             
-            soldiers_survives = offensive_force - defensive_army
+            soldiers_survives = int(offensive_force) - int(defensive_army)
 
             defensive_player.military = 0
-            offensive_player.military = offensive_player.military + soldiers_survives
+            offensive_player.military = int(offensive_player.military) + int(soldiers_survives)
 
             print(f"You win and {soldiers_survives} soldiers has returned from battlefield")
 
         else:
             
             soldiers_survives = 0
-            defense_result = defensive_player.military - offensive_force
-            offensive_player.military = offensive_player.military - offensive_force
+            defense_result = int(defensive_player.military) - int(offensive_force)
+            offensive_player.military = int(offensive_player.military) - (offensive_force)
 
             defensive_player.military = defense_result
 
             print(f"You lost all the soldiers you sent")
 
 
-def call_next_round():
-    next()
+# def call_next_round():
+#     next()
 
 
 def queue_cleaner(queue):
     for action in queue:
 
-        if action.exec_round == main.current_party.round:
-            action_in_execution = action.type
+        if action.exec_round == main.current_party[0].round:
+            action_in_execution = globals().get(action.type)
 
             action_in_execution(action)
         else:
             continue
+
+    main.current_party[0].round += 1
+
+
+def get_time():
+
+
+    pass
+
+
+def generate_log():
+    pass

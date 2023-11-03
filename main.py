@@ -28,7 +28,11 @@ def main():
     # Initiate the party
     this_party = create_party(players_list)
 
-    while this_party.status is True:
+    current_party.append(this_party)
+
+
+    while current_party[0].status is True:
+
         
         # Get action for every player
         for turn_player in db.players:
@@ -38,72 +42,80 @@ def main():
             action = input('Your choice: ')
 
             # Invest
-            if action == 1:
+            if action == str(1):
                 quantity_to_invest = input("How much to invest?")
                 investment_time = input("How many turns money should be invested?")
 
-                while quantity_to_invest > turn_player.money:
+                while int(quantity_to_invest) > int(turn_player.money):
 
                     print("You don't have all that. Try again.")
                     quantity_to_invest = input("How much to invest?")
 
                 else:
 
-                    invest_action = Action(main.current_party.round, executor=turn_player, target=turn_player, type="invest", quantity=quantity_to_invest, ttl=investment_time)
-                    main.action_queue.append(invest_action)
+                    invest_action = Action(current_party[0].round, executor=turn_player, target=turn_player, type="invest", quantity=quantity_to_invest, ttl=investment_time)
+                    action_queue.append(invest_action)
                     print(f'You have invested ${quantity_to_invest}!')
             
             # Hire
-            elif action == 2:
+            elif action == str(2):
 
                 quantity_to_hire = input("how many soldiers to hire?")
-                price = quantity_to_hire * 2
+                price = int(quantity_to_hire) * 2
 
-                while price > turn_player.money:
+                while price > int(turn_player.money):
 
                     print("You don't have all that. Try again.")
+
                     quantity_to_hire = input("how many soldiers to hire?")
 
                 else:
 
-                    hire_action = Action(main.current_party.round, executor=turn_player, target=turn_player, type="hire", quantity=quantity_to_hire, ttl=1)
-                    main.action_queue.append(hire_action)
+                    hire_action = Action(current_party[0].round, executor=turn_player, target=turn_player, type="hire", quantity=quantity_to_hire, ttl=1)
+                    action_queue.append(hire_action)
                     print(f'You have asked for ${quantity_to_hire} soldiers!')
             
             # Attack
-            elif action == 3:
+            elif action == str(3):
+
+                print("These are the other players: \n\n")
                 
-                print(x.name for x in players_list)
+                for x in players_list:
 
-                target = input("Who do you attack?")
+                    if x == turn_player:
+                        continue
+                    else:
+                        print(x)
 
-                while target == action.executor:
+                target_player = input("Who do you attack?")
+
+                while target_player == turn_player:
 
                     print("You can't attack yourself")
-                    target_player = input("Who do you attack?")
+                    target_player = input("\n\nWho do you attack?\n")
 
                 else:
 
-                    force_employed = input("How many soldiers will be sent?")
+                    force_employed = input("\n\nHow many soldiers will be deployed?")
 
-                    while action.executor.military < force_employed:
+                    while int(turn_player.military) < int(force_employed):
 
                         print("You don't have all that. Try again.")
-                        force_employed = input("how many soldiers to send?")
+                        force_employed = input("\n\nhow many soldiers to send?")
 
                     else:
 
-                        attack_action = Action(main.current_party.round, executor=turn_player, target=target_player, type="hire", quantity=force_employed, ttl=2)
-                        main.action_queue.append(attack_action)
+                        attack_action = Action(current_party[0].round, executor=turn_player, target=target_player, type="attack", quantity=force_employed, ttl=2)
+                        action_queue.append(attack_action)
                         print(f'You sent ${force_employed} soldiers to attack {attack_action.target}!')
             
             # Pass
-            elif action == 4:
-                call_next_round()
+            elif action == str(4):
+                continue
         
         # Read and execute action queue
         queue_cleaner(action_queue)
-        current_party[0].round += 1
+        
 
 if __name__ == '__main__':
     main()
