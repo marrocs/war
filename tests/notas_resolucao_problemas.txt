@@ -1,0 +1,74 @@
+DIÁRIO DE PROBLEMAS DE DESENVOLVIMENTO DO JOGO WAR  
+
+Os problemas que constarem aqui em sua maioria são acusados pelo debugger do vscode. 
+
+Nem todos os problemas acusados são relatados aqui, apenas os que geram alguma dificuldade (que precisam de mais de 3 ou 4 tentativas para funcionar);
+
+
+
+PROBLEMA 1
+
+    Ao rodar 'main.py' o debugger acusa:
+    
+                    Ocorreu uma exceção: IndexError
+            list index out of range
+            File "/media/marrocs/computacao/projetos/jogo_war/war/main.py", line 64, in main
+                invest_action = Action(current_party[0].round, executor=turn_player, target=turn_player, type="invest", quantity=quantity_to_invest, ttl=investment_time)
+            File "/media/marrocs/computacao/projetos/jogo_war/war/main.py", line 121, in <module>
+                main()
+            IndexError: list index out of range
+
+
+    Ao printar a lista current_party constatamos que está vazia, porém não deveria estar, pois o início da partida deveria ter adicionado um objeto partida à lista;
+    
+    Notei que há uma variavel local de main chamada 'this_party' e que é quem recebe o objeto Party;
+
+    Mudei alguns usos de 'current_party[0]' para 'this_party' mas parece não ter sido uma boa escolha devido ao fato de this_party não ser global. Devo appendar this_party à current_party e acessar usando current_party[0];
+
+    É estranho current_party estar vazio, porque functions.create_party() appenda um objeto Party. Como esse append esta sendo feito em main, comentei a linha de functions.py
+
+    A comentada acima gerou um erro. Foi desfeito
+
+    
+
+PROBLEMA 2
+
+                Ocorreu uma exceção: TypeError
+            'str' object is not callable
+            File "/media/marrocs/computacao/projetos/jogo_war/war/functions.py", line 99, in queue_cleaner
+                action_in_execution()
+            File "/media/marrocs/computacao/projetos/jogo_war/war/main.py", line 120, in main
+                queue_cleaner(action_queue)
+            File "/media/marrocs/computacao/projetos/jogo_war/war/main.py", line 124, in <module>
+                main()
+            TypeError: 'str' object is not callable
+
+
+    Agora essa bomba ai;
+
+    Resolvido com "globals().get(action.type)"
+
+
+PROBLEMA 3
+
+    Ao atacar, o jogador deve receber uma lista dos jogadores disponíveis e isso não está acontecendo. Ou ao menos não 
+
+    Consegui mostrar todos os usuários, mas ainda não é o bastante. Quero todos os jogadores, exceto o da rodada;
+
+PROBLEMA 4
+
+    
+    Estou obtendo o seguinte erro:
+
+                Traceback (most recent call last):
+            File "/media/marrocs/computacao/projetos/jogo_war/war/main.py", line 121, in <module>
+                main()
+            File "/media/marrocs/computacao/projetos/jogo_war/war/main.py", line 92, in main
+                while target == action.executor:
+            AttributeError: 'str' object has no attribute 'executor'
+
+    Isso pq estou referenciando o input do usuario e não um objeto de fato
+
+    Alterei a referencia para turn_player;
+
+    

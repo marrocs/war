@@ -65,3 +65,12 @@ O jogador deve começar com uma quantidade X de civis (que vão arrecadar recurs
 
         A classe Unidade deve ter: id, tipo (civil, militar ou infraestrutura), saude e posiçao no tabuleiro;
 
+
+
+----------------------------------------
+
+Tenho que fazer essa parada gerar um log
+
+Funcionalizar o código. Criar funções para todas as ações;
+
+    Isso significa que os inputs internos das funções devem ser passados como parâmetros;

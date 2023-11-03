@@ -2,31 +2,141 @@ from models import *
 import db
 import main
 
-def create_party(players_list):
+def receive_guests() -> str:
 
-    players = [p for p in players_list]
+    guests_names = []
 
-    for p in players:
-        reyalp = Player(p)
+    guests_names.append(input("\n\nWelcome. Enter your name: "))
 
-        db.players.append(reyalp)
+    more_player = input(f"There is {len(guests_names)} players. You can add up to 4 players. Want to add another player? y/n \n\n")
 
-    main.current_party.append(Party(db.players))
+    while len(guests_names) <= 4:
+        if more_player == "y":
+
+            guests_names.append(input("\n\nEnter player's name: "))
+            more_player = input("Want to add another player?")
+
+        
+        # Instanciate Players with names and Append Players to main.players_list
+        main.players_list.append(Player(p for p in guests_names))
+            
+        return "200 OK"
+    
+    return "400 ERROR"
+
+   
+def create_party(players_list) -> str:
+
+    main.current_party.append(Party(players_list))
 
     print(f'Party nº {main.current_party[0].id} initiated with: {db.players}')
 
-    return main.current_party[0]
+    return "200"
         
 
-def menu_action(player) -> None:
+def menu_action(player) -> str:
     print(f"\n\nHello {player.name}, here's what you need to know:\n ")
     print(f'This is round {main.current_party[0].round}\n\n')
     player.show_infos()
 
     print("\n\nYou might: \n\n1-Invest\n2-Buy military\n3-Attack\n4-Pass\n\n")
 
-    return None
+    action = input('Your choice: ')
 
+    return f"200 {action}"
+
+
+def get_action(player, return_code) -> str:
+
+    splited_return_code = return_code.split(',')
+    action = splited_return_code[1]
+
+    # Invest
+    if action == 1:
+
+        quantity_to_invest = input("How much to invest?")
+
+        while int(quantity_to_invest) > int(player.money):
+
+            print("You don't have all that. Try again.")
+            #quantity_to_invest = input("How much to invest?")
+
+            return "400 ERROR"
+
+        else:
+
+            investment_time = input("How many turns money should be invested?")
+
+            invest_action = Action(main.current_party[0].round, executor=player, target=player, type="invest", quantity=quantity_to_invest, ttl=investment_time)
+            main.action_queue.append(invest_action)
+
+            print(f'You have invested ${quantity_to_invest}!')
+
+            return "200 OK"
+        
+    # Hire
+    elif action == 2:
+
+        quantity_to_hire = input("how many soldiers to hire?")
+        price = int(quantity_to_hire) * 2
+
+        while price > int(player.money):
+
+            print("You don't have all that. Try again.")
+
+            return "400 ERROR"
+
+        else:
+
+            hire_action = Action(main.current_party[0].round, executor=player, target=player, type="hire", quantity=quantity_to_hire, ttl=1)
+            main.action_queue.append(hire_action)
+            print(f'You have asked for ${quantity_to_hire} soldiers!')
+
+            return "200 OK"
+
+    # Attack
+    elif action == 3:
+
+        print("These are the other players: \n\n")
+                
+        for x in main.players_list:
+
+            if x.name == player.name:
+                return "400 ERROR"
+            
+            else:
+                print(x.name)
+
+        target_player = input("Who do you attack?")
+
+        while target_player == player:
+
+            print("You can't attack yourself")
+            
+            return "400 ERROR"
+
+        else:
+
+            force_employed = input("\n\nHow many soldiers will be deployed?")
+
+            while int(player.military) < int(force_employed):
+
+                print("You don't have all that. Try again.")
+                
+                return "400 ERROR"
+
+            else:
+
+                attack_action = Action(main.current_party[0].round, executor=player, target=target_player, type="attack", quantity=force_employed, ttl=2)
+                main.action_queue.append(attack_action)
+                print(f'You sent {force_employed} soldiers to attack {attack_action.target}!')
+
+                return "200,OK"
+            
+    # Pass
+    elif action == str(4):
+        return "200 OK"
+                    
 
 def invest(action):
 
@@ -53,6 +163,7 @@ def hire(action):
 
     return None
 
+
 def attack(action):
     
     offensive_player = action.executor
@@ -62,8 +173,8 @@ def attack(action):
 
     if int(defensive_army) == 0:
 
-        print("ENDGAME")
-        exit()
+        print(f"ENDGAME for {defensive_player}")
+        main.current_party.status = False
 
     else:
 
@@ -88,7 +199,7 @@ def attack(action):
 
 
 # def call_next_round():
-#     next()
+#     continue
 
 
 def queue_cleaner(queue):
@@ -98,8 +209,12 @@ def queue_cleaner(queue):
             action_in_execution = globals().get(action.type)
 
             action_in_execution(action)
+
+            return "200 OK"
+        
         else:
-            continue
+            
+            return "400 ERROR"
 
     main.current_party[0].round += 1
 
