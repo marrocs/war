@@ -4,34 +4,44 @@ import main
 
 def receive_guests() -> str:
 
-    guests_names = []
+    try:
+        guests_names = []
 
-    guests_names.append(input("\n\nWelcome. Enter your name: "))
+        #guests_names.append(input("\n\nWelcome. Enter your name: "))
 
-    more_player = input(f"There is {len(guests_names)} players. You can add up to 4 players. Want to add another player? y/n \n\n")
+        #more_player = input(f"There is {len(guests_names)} players. You can add up to 4 players. Want to add another player? y/n \n\n")
 
-    while len(guests_names) <= 4:
-        if more_player == "y":
+        num_players = int(input("How many players? "))
 
-            guests_names.append(input("\n\nEnter player's name: "))
-            more_player = input("Want to add another player?")
+        # 04/11 -  Aqui esta dando problema
+        for x in range(num_players):
 
-        
+            name = input(f"Player's {x+1} name: ")
+            guests_names.append(name)
+            print(f"\nThere will be {num_players} players \n")
+            print(f"Player {name} registered for party")
+            
         # Instanciate Players with names and Append Players to main.players_list
         main.players_list.append(Player(p for p in guests_names))
-            
-        return "200 OK"
     
-    return "400 ERROR"
+    except:
+        #break()
+        return "400 ERROR"
 
+    
+    return "200 OK"
    
 def create_party(players_list) -> str:
 
-    main.current_party.append(Party(players_list))
+    try:
+        main.current_party.append(Party(players_list))  # --> Isso daqui não está funcionando
 
-    print(f'Party nº {main.current_party[0].id} initiated with: {db.players}')
+        print(f'Party nº {main.current_party[0].id} initiated with: {main.current_party[0].players}')
 
-    return "200"
+    except:
+        return "400 ERROR"
+    
+    return "200 OK"
         
 
 def menu_action(player) -> str:

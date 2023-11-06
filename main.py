@@ -1,14 +1,14 @@
-from functions import *
-import db
+import functions 
 
 global players_list 
 global action_queue
 global current_party
 
-
+# <-----> OBJECT HOLDERS <----->
 players_list = [] # Must receive Player. Also, must be here, not in functions.
-action_queue = [] # Must receive Action
-current_party = [] # Must receive only one object Party
+action_queue = [] # Must receive Action 
+current_party = [] # Must receive only one object Party 
+# <-----> END OBJECT HOLDERS <----->
 
 def main():
 
@@ -17,10 +17,10 @@ def main():
     
 
     # Get players
-    receive_guests()
+    functions.receive_guests()
     
     # Initiate the Party and append it to current_party list
-    current_party.append(create_party(players_list))
+    functions.create_party(players_list)
 
 
     while current_party[0].status is True:
@@ -29,10 +29,10 @@ def main():
         # Get action for every player
         for turn_player in players_list:
 
-            get_action(turn_player, menu_action(turn_player))
+            functions.get_action(turn_player, functions.menu_action(turn_player))
             
         # Read and execute action queue
-        queue_cleaner(action_queue)
+        functions.queue_cleaner(action_queue)
     
     else:
         print("ENDGAME")
