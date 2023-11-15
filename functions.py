@@ -67,8 +67,8 @@ def menu_action(player) -> str:
 
 def get_action(player, return_code) -> str:
 
-    splited_return_code = return_code.split(',')
-    action = splited_return_code[1]
+    splited_return_code = return_code.split(' ')
+    action = int(splited_return_code[1])
 
     # Invest
     if action == 1:

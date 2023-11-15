@@ -4,12 +4,12 @@ from random import randint
 
 #FILEPATH = "../main.py"
 
+names_pool = ["carlos", "maria", "joao", "daria", "jose", "jordana", "julia", "marcia", "paulo", "daniel", "gaia"]
+num_players = randint(2,5)
+
 # Test if names is turned into Players object and added to main. players_list
 class Unittest_receive_guests(unittest.TestCase):
     
-    names_pool = ["carlos", "maria", "joao", "daria", "jose", "jordana", "julia", "marcia", "paulo", "daniel", "gaia"]
-    num_players = randint(2,5)
-
     # Sequence of inputs required in function
     global test_input_seq
     test_input_seq = []
@@ -34,34 +34,20 @@ class Unittest_receive_guests(unittest.TestCase):
 
 
     @patch('builtins.input', side_effect=test_input_seq) # Side_effect são os inputs a serem passados. Deve receber uma lista
-
     def test_receive_guests(self, mock_input):
         
 
-        print("TESTE: test_input_seq")
-        print(test_input_seq)
-
         result = functions.receive_guests()
         test_players_names = []
-        mock_side_effects = mock_input.call_args_list
 
-        print("-------------------------------")
-        print(x for x in mock_side_effects)
-        print("-------------------------------")
 
         # Isso aqui não está funcionando
-        for x,y in enumerate(mock_input):
-            
-            print("TESTE: x,y do enumerate(mockinput)")
-            print(x,y)
+        for x,y in enumerate(test_input_seq):
 
-            if x%2 != 0:
+            if x != 0:
                 
                 test_players_names.append(y) # Não está populando
 
-
-        print("TESTE: test_players_names depois") # Aqui deve estar populado
-        print(test_players_names)
 
         settings_players_list_names = [x.name for x in settings.players_list]
 
@@ -72,9 +58,12 @@ class Unittest_receive_guests(unittest.TestCase):
         self.assertEqual(result, "200 OK")
 
 
-# class Unittest_create_party(unittest.TestCase):
-#     def test_create_party():
-#         pass
+class Unittest_create_party(unittest.TestCase):
+    
+
+    
+    def test_create_party():
+        pass
 
     # def test_menu_action():
     #     pass
@@ -101,4 +90,4 @@ class Unittest_receive_guests(unittest.TestCase):
     #     pass
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=2)
