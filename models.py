@@ -3,7 +3,7 @@ party_id_counter = 0
 class Party: 
     def __init__(self, players:list) -> None:
         self.id = party_id_counter
-        self.players = [p for p in players]
+        self.players = [players]
         self.logs = []
         self.round = 0
         self.status = True  
@@ -15,6 +15,7 @@ class Party:
     party_id_counter += 1
 
     
+
 class Player:
     def __init__(self, name) -> None:
         self.name = name

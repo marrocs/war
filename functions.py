@@ -1,6 +1,6 @@
 from models import *
 import db
-import main
+import settings
 
 def receive_guests() -> str:
 
@@ -21,8 +21,14 @@ def receive_guests() -> str:
             print(f"\nThere will be {num_players} players \n")
             print(f"Player {name} registered for party")
             
-        # Instanciate Players with names and Append Players to main.players_list
-        main.players_list.append(Player(p for p in guests_names))
+        # Instanciate Players with names and Append Players to settings.players_list
+
+        for p in guests_names:
+            new_player = Player(p)
+
+            # Isso aqui não esta funcionando. Players list não está sendo populado
+            settings.players_list.append(new_player)
+            
     
     except:
         #break()
@@ -31,12 +37,15 @@ def receive_guests() -> str:
     
     return "200 OK"
    
-def create_party(players_list) -> str:
+def create_party(players_list) -> list:
 
     try:
-        main.current_party.append(Party(players_list))  # --> Isso daqui não está funcionando
+        
+        new_party = Party(players_list)
+        
+        settings.current_party.append(new_party)  # --> Isso daqui não está funcionando
 
-        print(f'Party nº {main.current_party[0].id} initiated with: {main.current_party[0].players}')
+        print(f'Party nº {settings.current_party[0].id} initiated with: {settings.current_party[0].players}')
 
     except:
         return "400 ERROR"
@@ -46,7 +55,7 @@ def create_party(players_list) -> str:
 
 def menu_action(player) -> str:
     print(f"\n\nHello {player.name}, here's what you need to know:\n ")
-    print(f'This is round {main.current_party[0].round}\n\n')
+    print(f'This is round {settings.current_party[0].round}\n\n')
     player.show_infos()
 
     print("\n\nYou might: \n\n1-Invest\n2-Buy military\n3-Attack\n4-Pass\n\n")
@@ -77,8 +86,8 @@ def get_action(player, return_code) -> str:
 
             investment_time = input("How many turns money should be invested?")
 
-            invest_action = Action(main.current_party[0].round, executor=player, target=player, type="invest", quantity=quantity_to_invest, ttl=investment_time)
-            main.action_queue.append(invest_action)
+            invest_action = Action(settings.current_party[0].round, executor=player, target=player, type="invest", quantity=quantity_to_invest, ttl=investment_time)
+            settings.action_queue.append(invest_action)
 
             print(f'You have invested ${quantity_to_invest}!')
 
@@ -98,8 +107,8 @@ def get_action(player, return_code) -> str:
 
         else:
 
-            hire_action = Action(main.current_party[0].round, executor=player, target=player, type="hire", quantity=quantity_to_hire, ttl=1)
-            main.action_queue.append(hire_action)
+            hire_action = Action(settings.current_party[0].round, executor=player, target=player, type="hire", quantity=quantity_to_hire, ttl=1)
+            settings.action_queue.append(hire_action)
             print(f'You have asked for ${quantity_to_hire} soldiers!')
 
             return "200 OK"
@@ -109,7 +118,7 @@ def get_action(player, return_code) -> str:
 
         print("These are the other players: \n\n")
                 
-        for x in main.players_list:
+        for x in settings.players_list:
 
             if x.name == player.name:
                 return "400 ERROR"
@@ -137,8 +146,8 @@ def get_action(player, return_code) -> str:
 
             else:
 
-                attack_action = Action(main.current_party[0].round, executor=player, target=target_player, type="attack", quantity=force_employed, ttl=2)
-                main.action_queue.append(attack_action)
+                attack_action = Action(settings.current_party[0].round, executor=player, target=target_player, type="attack", quantity=force_employed, ttl=2)
+                settings.action_queue.append(attack_action)
                 print(f'You sent {force_employed} soldiers to attack {attack_action.target}!')
 
                 return "200,OK"
@@ -184,7 +193,7 @@ def attack(action):
     if int(defensive_army) == 0:
 
         print(f"ENDGAME for {defensive_player}")
-        main.current_party.status = False
+        settings.current_party.status = False
 
     else:
 
@@ -215,7 +224,7 @@ def attack(action):
 def queue_cleaner(queue):
     for action in queue:
 
-        if action.exec_round == main.current_party[0].round:
+        if action.exec_round == settings.current_party[0].round:
             action_in_execution = globals().get(action.type)
 
             action_in_execution(action)
@@ -226,7 +235,7 @@ def queue_cleaner(queue):
             
             return "400 ERROR"
 
-    main.current_party[0].round += 1
+    settings.current_party[0].round += 1
 
 
 def get_time():
