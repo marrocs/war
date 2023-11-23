@@ -26,6 +26,9 @@ def main():
             
         # Read and execute action queue
         functions.queue_cleaner(settings.action_queue)
+
+        # After clean action_queue, add 1 to party round
+        settings.current_party[0].round += 1
     
     else:
         print("ENDGAME")

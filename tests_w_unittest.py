@@ -58,12 +58,12 @@ class Unittest_receive_guests(unittest.TestCase):
         self.assertEqual(result, "200 OK")
 
 
-class Unittest_create_party(unittest.TestCase):
+#class Unittest_create_party(unittest.TestCase):
     
 
     
-    def test_create_party():
-        pass
+#    def test_create_party():
+#        pass
 
     # def test_menu_action():
     #     pass

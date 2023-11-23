@@ -1,6 +1,10 @@
 from models import *
-import db
-import settings
+import settings, logging
+
+
+logging.basicConfig(level=logging.INFO, filename='app.log', format='%(asctime)s - %(levelname)s - %(message)s')
+# Uso: logging.info f/ logging.warnifng / logging. errofr
+
 
 def receive_guests() -> str:
 
@@ -13,12 +17,14 @@ def receive_guests() -> str:
 
         num_players = int(input("How many players? "))
 
-        # 04/11 -  Aqui esta dando problema
+        logging.info(f"Sessão iniciada com {num_players} jogadores")
+
+        print(f"\nThere will be {num_players} players \n")
+
         for x in range(num_players):
 
             name = input(f"Player's {x+1} name: ")
             guests_names.append(name)
-            print(f"\nThere will be {num_players} players \n")
             print(f"Player {name} registered for party")
             
         # Instanciate Players with names and Append Players to settings.players_list
@@ -26,26 +32,28 @@ def receive_guests() -> str:
         for p in guests_names:
             new_player = Player(p)
 
-            # Isso aqui não esta funcionando. Players list não está sendo populado
-            settings.players_list.append(new_player)
-            
+            settings.players_list.append(new_player)         
     
     except:
         #break()
-        return "400 ERROR"
+        return "400 ERROR IN {__name__}"
 
     
-    return "200 OK"
-   
+    else:
+        return "200 OK"
+
+
 def create_party(players_list) -> list:
 
     try:
         
         new_party = Party(players_list)
         
-        settings.current_party.append(new_party)  # --> Isso daqui não está funcionando
+        settings.current_party.append(new_party) 
 
         print(f'Party nº {settings.current_party[0].id} initiated with: {settings.current_party[0].players}')
+
+        logging.info(f"Sessão partida iniciada com jogadores: {settings.current_party[0].players}")
 
     except:
         return "400 ERROR"
@@ -76,9 +84,11 @@ def get_action(player, return_code) -> str:
         quantity_to_invest = input("How much to invest?")
 
         while int(quantity_to_invest) > int(player.money):
-
+            
             print("You don't have all that. Try again.")
             #quantity_to_invest = input("How much to invest?")
+
+            logging.info(f"Player: {player.name}, Action: {action}, Succeded: No, Message: Player dont have that money")
 
             return "400 ERROR"
 
@@ -88,8 +98,11 @@ def get_action(player, return_code) -> str:
 
             invest_action = Action(settings.current_party[0].round, executor=player, target=player, type="invest", quantity=quantity_to_invest, ttl=investment_time)
             settings.action_queue.append(invest_action)
+            player.money -= int(quantity_to_invest)
 
             print(f'You have invested ${quantity_to_invest}!')
+
+            logging.info(f"Player: {player.name}, Action: {action}, Succeded: Yes")
 
             return "200 OK"
         
@@ -103,13 +116,19 @@ def get_action(player, return_code) -> str:
 
             print("You don't have all that. Try again.")
 
+            logging.info(f"Player: {player.name}, Action: {action}, Succeded: No, Message: {player.name} tried to order more soldiers that can afford")
+
             return "400 ERROR"
 
         else:
 
             hire_action = Action(settings.current_party[0].round, executor=player, target=player, type="hire", quantity=quantity_to_hire, ttl=1)
             settings.action_queue.append(hire_action)
-            print(f'You have asked for ${quantity_to_hire} soldiers!')
+            player.money -= price
+
+            print(f'You have asked for {quantity_to_hire} soldiers!')
+
+            logging.info(f"Player: {player.name}, Action: {action}, Succeded: Yes, Message: {player.name} ordered {quantity_to_hire} soldiers")
 
             return "200 OK"
 
@@ -121,6 +140,7 @@ def get_action(player, return_code) -> str:
         for x in settings.players_list:
 
             if x.name == player.name:
+
                 return "400 ERROR"
             
             else:
@@ -131,6 +151,8 @@ def get_action(player, return_code) -> str:
         while target_player == player:
 
             print("You can't attack yourself")
+
+            logging.info(f"Player: {player.name}, Action: {action}, Succeded: No, Message: {player.name} tried to attack himself")
             
             return "400 ERROR"
 
@@ -141,6 +163,8 @@ def get_action(player, return_code) -> str:
             while int(player.military) < int(force_employed):
 
                 print("You don't have all that. Try again.")
+
+                logging.info(f"Player: {player.name}, Action: {action}, Succeded: No, Message: {player.name} tried to use more soldiers than got")
                 
                 return "400 ERROR"
 
@@ -149,6 +173,8 @@ def get_action(player, return_code) -> str:
                 attack_action = Action(settings.current_party[0].round, executor=player, target=target_player, type="attack", quantity=force_employed, ttl=2)
                 settings.action_queue.append(attack_action)
                 print(f'You sent {force_employed} soldiers to attack {attack_action.target}!')
+
+                logging.info(f"Player: {player.name}, Action: {action}, Succeded: Yes, Message: {attack_action.target} will be hit by {attack_action.quantity} {player.name}'s soldiers!")
 
                 return "200,OK"
             
@@ -167,6 +193,9 @@ def invest(action):
     action.executor.money += investment_return
                 
     print(f'{action.executor} just received ${investment_return} back!')
+
+
+    logging.info(f"Player: {player.name}, Action: {action.type}, Succeded: Yes, Message: {player.name} received ${investment_return} back")
     
     return None
 
@@ -174,11 +203,12 @@ def invest(action):
 def hire(action):
 
     quantity_to_hire = int(action.quantity)
-    benefited = action.executor
-    actual_num_troops = int(benefited.military)
 
-    benefited.military = str(quantity_to_hire + actual_num_troops)
+    action.executor.military += quantity_to_hire
     print(f"Good news. The {quantity_to_hire} soldiers you requested has arrived.")
+
+
+    logging.info(f"Player: {player.name}, Action: {action.type}, Succeded: Yes, Message: {player.name} received {quantity_to_hire} soldiers")
 
     return None
 
@@ -195,6 +225,9 @@ def attack(action):
         print(f"ENDGAME for {defensive_player}")
         settings.current_party.status = False
 
+        logging.info(f"Player: {action.executor.name}, Action: {action.type}, Succeded: Yes, Message: {action.executor.name} is victorious.")
+
+
     else:
 
         if int(offensive_force) > int(defensive_army):
@@ -204,7 +237,10 @@ def attack(action):
             defensive_player.military = 0
             offensive_player.military = int(offensive_player.military) + int(soldiers_survives)
 
-            print(f"You win and {soldiers_survives} soldiers has returned from battlefield")
+            print(f"You WIN the battle and {soldiers_survives} soldiers has returned from battlefield")
+
+            logging.info(f"Player: {action.executor.name}, Action: {action.type}, Succeded: Yes, Message: {action.executor.name} win the battle. {soldiers_survives} soldiers survived.")
+
 
         else:
             
@@ -215,6 +251,8 @@ def attack(action):
             defensive_player.military = defense_result
 
             print(f"You lost all the soldiers you sent")
+
+            logging.info(f"Player: {action.executor.name}, Action: {action.type}, Succeded: No, Message: {action.executor.name} lost the battle. The is no survivals.")
 
 
 # def call_next_round():
@@ -229,10 +267,14 @@ def queue_cleaner(queue):
 
             action_in_execution(action)
 
+            logging.info(f"QUEUE CLEANER: executed a {action.type} action for {action.executor.name} player")
+
             return "200 OK"
         
         else:
             
+            logging.info(f"QUEUE CLEANER: action.execution_round is DIFFERENT from current_party.round. Calling next action")
+
             return "400 ERROR"
 
     settings.current_party[0].round += 1

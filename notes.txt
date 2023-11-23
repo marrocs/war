@@ -74,3 +74,21 @@ Tenho que fazer essa parada gerar um log
 Funcionalizar o código. Criar funções para todas as ações;
 
     Isso significa que os inputs internos das funções devem ser passados como parâmetros;
+
+
+15/11/23
+
+    Depois de resolver o problema da população das listas através do settings.py, o maior problema agora é o teste.
+
+    Como acessar a lista de side_effect do mock_input?
+
+
+
+
+23/11/23 
+
+    PROBLEMA:
+    
+        1) Quando digito um valor acima do que possuo, em investimento, por exemplo, ao invés de chamar novamente o input do usuario o programa pula para o proximo usuario
+
+        2) Ao atacar, o programa exibe os outros jogadores mas não recebe quem atacar depois
