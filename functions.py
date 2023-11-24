@@ -1,9 +1,12 @@
+'''
+TODO: Implementar uma forma de verificar se o usuario escolhido para ser atacado existe
+'''
 from models import *
-import settings, logging
-
+import settings, logging, sys, traceback
+from math import floor
 
 logging.basicConfig(level=logging.INFO, filename='app.log', format='%(asctime)s - %(levelname)s - %(message)s')
-# Uso: logging.info f/ logging.warnifng / logging. errofr
+# Uso: logging.info / logging.warning / logging.error
 
 
 def receive_guests() -> str:
@@ -11,13 +14,7 @@ def receive_guests() -> str:
     try:
         guests_names = []
 
-        #guests_names.append(input("\n\nWelcome. Enter your name: "))
-
-        #more_player = input(f"There is {len(guests_names)} players. You can add up to 4 players. Want to add another player? y/n \n\n")
-
         num_players = int(input("How many players? "))
-
-        logging.info(f"Sessão iniciada com {num_players} jogadores")
 
         print(f"\nThere will be {num_players} players \n")
 
@@ -53,7 +50,7 @@ def create_party(players_list) -> list:
 
         print(f'Party nº {settings.current_party[0].id} initiated with: {settings.current_party[0].players}')
 
-        logging.info(f"Sessão partida iniciada com jogadores: {settings.current_party[0].players}")
+        logging.info(f"Partida número {new_party.id} iniciada com jogadores: {settings.current_party[0].players}")
 
     except:
         return "400 ERROR"
@@ -62,15 +59,37 @@ def create_party(players_list) -> list:
         
 
 def menu_action(player) -> str:
-    print(f"\n\nHello {player.name}, here's what you need to know:\n ")
-    print(f'This is round {settings.current_party[0].round}\n\n')
-    player.show_infos()
 
-    print("\n\nYou might: \n\n1-Invest\n2-Buy military\n3-Attack\n4-Pass\n\n")
+    try:
+        print(f'''
 
-    action = input('Your choice: ')
+    <<----->> MENU ACTION <<----->
+                ROUND {settings.current_party[0].round}
 
-    return f"200 {action}"
+Player: {player.name}   |   Money: {player.money}   |   Army: {player.military}
+*****************************************    
+*                                       *
+*                                       *
+*    1 - Invest    2 - Hire military    *     
+*                                       *
+*    3 - Attack    4 - Pass             *
+*                                       *
+*                                       *
+*****************************************
+    ''')
+
+
+        action = input('\n\n\nYour choice: ')
+
+    except Exception as error:
+
+        logging.error(f"ERROR - Following error occour: {error}")
+
+        return "400 ERROR"
+
+    else:
+
+        return f"200 {action}"
 
 
 def get_action(player, return_code) -> str:
@@ -88,7 +107,7 @@ def get_action(player, return_code) -> str:
             print("You don't have all that. Try again.")
             #quantity_to_invest = input("How much to invest?")
 
-            logging.info(f"Player: {player.name}, Action: {action}, Succeded: No, Message: Player dont have that money")
+            logging.info(f"Player: {player.name}, Action: invest, Succeded: No, Message: Player dont have that money")
 
             return "400 ERROR"
 
@@ -102,7 +121,7 @@ def get_action(player, return_code) -> str:
 
             print(f'You have invested ${quantity_to_invest}!')
 
-            logging.info(f"Player: {player.name}, Action: {action}, Succeded: Yes")
+            logging.info(f"Player: {player.name}, Action: {invest_action.type}, Succeded: Yes, Message: Money invested with success. Expect return in round {int(settings.current_party[0].round) + int(invest_action.ttl) + 1}")
 
             return "200 OK"
         
@@ -116,24 +135,25 @@ def get_action(player, return_code) -> str:
 
             print("You don't have all that. Try again.")
 
-            logging.info(f"Player: {player.name}, Action: {action}, Succeded: No, Message: {player.name} tried to order more soldiers that can afford")
+            logging.info(f"Player: {player.name}, Action: Hire, Succeded: No, Message: {player.name} tried to order more soldiers that can afford")
 
             return "400 ERROR"
 
         else:
 
-            hire_action = Action(settings.current_party[0].round, executor=player, target=player, type="hire", quantity=quantity_to_hire, ttl=1)
+            hire_action = Action(int(settings.current_party[0].round), executor=player, target=player, type="hire", quantity=quantity_to_hire, ttl=2)
             settings.action_queue.append(hire_action)
             player.money -= price
 
-            print(f'You have asked for {quantity_to_hire} soldiers!')
+            print(f'You have asked for {quantity_to_hire} soldiers that should be delivered in round {int(settings.current_party[0].round) + int(hire_action.ttl)}!')
 
-            logging.info(f"Player: {player.name}, Action: {action}, Succeded: Yes, Message: {player.name} ordered {quantity_to_hire} soldiers")
+            logging.info(f"Player: {player.name}, Action: {hire_action.type}, Succeded: Yes, Message: {hire_action.executor.name} ordered {quantity_to_hire} soldiers")
 
             return "200 OK"
 
     # Attack
     elif action == 3:
+
 
         print("These are the other players: \n\n")
                 
@@ -141,12 +161,19 @@ def get_action(player, return_code) -> str:
 
             if x.name == player.name:
 
-                return "400 ERROR"
+                pass
             
             else:
                 print(x.name)
 
-        target_player = input("Who do you attack?")
+        target_name = input("Who do you want attack?")
+        
+        target_player = 0
+
+        for x in settings.players_list:
+            if x.name == target_name:
+                target_player = x
+
 
         while target_player == player:
 
@@ -170,11 +197,13 @@ def get_action(player, return_code) -> str:
 
             else:
 
-                attack_action = Action(settings.current_party[0].round, executor=player, target=target_player, type="attack", quantity=force_employed, ttl=2)
+                attack_action = Action(int(settings.current_party[0].round), executor=player, target=target_player, type="attack", quantity=force_employed, ttl=2)
                 settings.action_queue.append(attack_action)
                 print(f'You sent {force_employed} soldiers to attack {attack_action.target}!')
 
-                logging.info(f"Player: {player.name}, Action: {action}, Succeded: Yes, Message: {attack_action.target} will be hit by {attack_action.quantity} {player.name}'s soldiers!")
+                player.military -= int(force_employed)
+
+                logging.info(f"Player: {player.name}, Action: {action}, Succeded: Yes, Message: {attack_action.target.name} will be hit by {attack_action.quantity} {player.name}'s soldiers!")
 
                 return "200,OK"
             
@@ -186,16 +215,16 @@ def get_action(player, return_code) -> str:
 def invest(action):
 
     invested_value = action.quantity
-    interest_rate = 1
+    interest_rate = 0.8
     time_investment = action.ttl
-    investment_return = int(invested_value) * int(time_investment) * int(interest_rate)
+    investment_return = floor((float(invested_value) * float(time_investment) * float(interest_rate)))
 
     action.executor.money += investment_return
                 
     print(f'{action.executor} just received ${investment_return} back!')
 
 
-    logging.info(f"Player: {player.name}, Action: {action.type}, Succeded: Yes, Message: {player.name} received ${investment_return} back")
+    logging.info(f"Player: {action.executor.name}, Action: {action.type}, Succeded: Yes, Message: {action.executor.name} received ${investment_return} back")
     
     return None
 
@@ -205,10 +234,10 @@ def hire(action):
     quantity_to_hire = int(action.quantity)
 
     action.executor.military += quantity_to_hire
-    print(f"Good news. The {quantity_to_hire} soldiers you requested has arrived.")
+    print(f"Good news, {action.executor.name}. The {quantity_to_hire} soldiers you requested has arrived.")
 
 
-    logging.info(f"Player: {player.name}, Action: {action.type}, Succeded: Yes, Message: {player.name} received {quantity_to_hire} soldiers")
+    logging.info(f"Player: {action.executor.name}, Action: {action.type}, Succeded: Yes, Message: {action.executor.name} received {quantity_to_hire} soldiers")
 
     return None
 
@@ -217,42 +246,59 @@ def attack(action):
     
     offensive_player = action.executor
     defensive_player = action.target
-    offensive_force = offensive_player.military
-    defensive_army = defensive_player.military
+    offensive_force = int(action.quantity)
+    defensive_army = int(action.target.military)
 
-    if int(defensive_army) == 0:
+    try:
+        if defensive_army == int(0):
 
-        print(f"ENDGAME for {defensive_player}")
-        settings.current_party.status = False
+            print(f"ENDGAME for {defensive_player}")
 
-        logging.info(f"Player: {action.executor.name}, Action: {action.type}, Succeded: Yes, Message: {action.executor.name} is victorious.")
+            logging.info(f"Player: {action.executor.name}, Action: {action.type}, Succeded: Yes, Message: {action.executor.name} is victorious.")
 
-
-    else:
-
-        if int(offensive_force) > int(defensive_army):
-            
-            soldiers_survives = int(offensive_force) - int(defensive_army)
-
-            defensive_player.military = 0
-            offensive_player.military = int(offensive_player.military) + int(soldiers_survives)
-
-            print(f"You WIN the battle and {soldiers_survives} soldiers has returned from battlefield")
-
-            logging.info(f"Player: {action.executor.name}, Action: {action.type}, Succeded: Yes, Message: {action.executor.name} win the battle. {soldiers_survives} soldiers survived.")
+            settings.current_party.status = False
 
 
         else:
-            
-            soldiers_survives = 0
-            defense_result = int(defensive_player.military) - int(offensive_force)
-            offensive_player.military = int(offensive_player.military) - (offensive_force)
 
-            defensive_player.military = defense_result
+            if offensive_force > defensive_army:
+                
+                offensive_survivals = int(offensive_force) - int(defensive_army)
 
-            print(f"You lost all the soldiers you sent")
+                action.target.military = int(0)
+                action.executor.military = int(action.executor.military) + int(offensive_survivals)
 
-            logging.info(f"Player: {action.executor.name}, Action: {action.type}, Succeded: No, Message: {action.executor.name} lost the battle. The is no survivals.")
+                print(f"Congratz, {action.executor.name}. You WIN the battle and {offensive_survivals} soldiers has returned from battlefield")
+
+                logging.info(f"Player: {action.executor.name}, Action: {action.type}, Succeded: Yes, Message: {action.executor.name} attack {action.target.name} and WIN")
+
+
+            elif offensive_force < defensive_army:
+                
+                defensive_survivals = int(defensive_army) - int(offensive_force)
+                action.target.military = defensive_survivals
+
+                print(f"You lost all the soldiers you sent")
+
+                logging.info(f"Player: {action.executor.name}, Action: {action.type}, Succeded: No, Message: {action.executor.name} attack {action.target.name} and LOST.")
+
+            elif offensive_force == defensive_army:
+                pass
+
+            else:
+                raise ValueError("offensive_force and defensive_army are not different neither equal. Go check that weird shit.")
+
+    except Exception as error:
+
+        except_type, except_object, except_traceback = sys.exc_info()
+
+        logging.error(f"ERROR - The problem: {type(error)} occour. {traceback.format_tb(except_traceback)}")
+
+        return "400 ERROR"
+
+    else:
+
+        return "200 OK"
 
 
 # def call_next_round():
@@ -260,31 +306,29 @@ def attack(action):
 
 
 def queue_cleaner(queue):
-    for action in queue:
+    try:
+        for action in queue:
 
-        if action.exec_round == settings.current_party[0].round:
-            action_in_execution = globals().get(action.type)
+            if int(action.exec_round) == int(settings.current_party[0].round):
+                action_to_execute = globals().get(action.type)
 
-            action_in_execution(action)
+                action_to_execute(action)
 
-            logging.info(f"QUEUE CLEANER: executed a {action.type} action for {action.executor.name} player")
+                logging.info(f"QUEUE CLEANER: executed a {action.type} action for {action.executor.name} player")
+                settings.action_queue.remove(action)
 
-            return "200 OK"
-        
-        else:
-            
-            logging.info(f"QUEUE CLEANER: action.execution_round is DIFFERENT from current_party.round. Calling next action")
-
-            return "400 ERROR"
-
-    settings.current_party[0].round += 1
+            else:
+                
+                logging.info(f"QUEUE CLEANER: This {action.type} shouldn't occour in this round. Calling next one")
 
 
-def get_time():
+    except Exception as error:
+
+        logging.error(f"ERROR - The problem: {error} occour")
 
 
-    pass
+        return "400 ERROR"
 
+    else:
 
-def generate_log():
-    pass
+        return "200 OK"

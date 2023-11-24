@@ -1,16 +1,16 @@
-party_id_counter = 0
+party_id_counter = 1
+action_id_counter = 1
 
 class Party: 
     def __init__(self, players:list) -> None:
         self.id = party_id_counter
-        self.players = [players]
-        self.logs = []
-        self.round = 0
+        self.players = players
+        self.round = int(0)
         self.status = True  
         self.winner = ""
 
     def __repr__(self):
-        return f"This party has: ID {self.id}, players: [{self.players}], logs: [{self.logs}], rounds: {self.round}, status: {self.status}, winner: {self.winner}"
+        return f"This party has: ID {self.id}, players: [{self.players}], rounds: {self.round}, status: {self.status}, winner: {self.winner}"
 
     party_id_counter += 1
 
@@ -20,7 +20,7 @@ class Player:
     def __init__(self, name) -> None:
         self.name = name
         self.money = 100
-        self.military = 10
+        self.military = int(10)
 
     def __repr__(self) -> str:
         return f'Player: {self.name}\nMoney:{self.money}\nMilitary: {self.military}'
@@ -33,8 +33,8 @@ class Player:
 
 
 class Action:
-    def __init__(self, round, executor, target, type:str, quantity, ttl:int) -> None:
-        self.id = id
+    def __init__(self, round:int, executor, target, type:str, quantity:int, ttl:int) -> None:
+        self.id = action_id_counter
         self.round = round
         self.executor = executor
         self.target = target
@@ -43,6 +43,7 @@ class Action:
         self.ttl = ttl
         self.exec_round = int(self.round) + int(self.ttl)
 
+    action_id_counter += 1
 
 # class Unity:
 #     # The minimal entity on game. Must hold health,
