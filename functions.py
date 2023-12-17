@@ -19,7 +19,7 @@ def receive_guests() -> str:
         
         
         if num_players == 1:            
-            npc_number = int(input("How many NPCs?")) # Problemas aqui. Depois de receber o número retorna ao loop de main
+            npc_number = int(input("How many NPCs?")) # Problem here. Further code don't get executed
 
             
             print(f"\nThere will be {num_players} player and {npc_number} NPC's \n")
