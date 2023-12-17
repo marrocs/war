@@ -1,4 +1,4 @@
-import functions, settings, re
+import functions, settings
 
 
 

@@ -19,19 +19,16 @@ def receive_guests() -> str:
         
         
         if num_players == 1:            
-            npc_number = int(input("How many NPCs?")) # Problem here. Further code don't get executed
+            npc_number = int(input("How many NPCs?")) 
 
+            print(f"\nThere will be {num_players} player and {npc_number} NPC's \n") # Problem here. Further code don't get executed
             
-            print(f"\nThere will be {num_players} player and {npc_number} NPC's \n")
-            
+
             for npc in range(npc_number):
-                count = 1
-                guests_names.append(f"machine_"+{str(count)})
+                guests_names.append(f"machine_"+ str(npc))
                 
                 print("DEBUG - guests names: " + guests_names)
-                
-                count += 1
-    
+                    
         
         else:    
 
@@ -45,7 +42,7 @@ def receive_guests() -> str:
             print(f"Player {name} registered for party")
             
             
-        # Instanciate Players with names and Append Players to settings.players_list
+        # Instantiate Players with names and Append Players to settings.players_list
 
         for p in guests_names:
             new_player = Player(p)
