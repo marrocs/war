@@ -1,4 +1,4 @@
-import functions, settings
+import functions, settings, re
 
 
 
@@ -18,11 +18,19 @@ def main():
 
     while settings.current_party[0].status is True:
 
+        print("eu tbm") # Problema bizarro: loop infinito aqui. Não executa resto do codigo
         
         # Get action for every player
         for turn_player in settings.players_list:
+            
+            print("olha eu aqui")
 
-            functions.get_action(turn_player, functions.menu_action(turn_player))
+            
+            if turn_player.name[0:8] == "machine_":
+                functions.machine_movement(turn_player)
+
+            else:
+                functions.get_action(turn_player, functions.menu_action(turn_player))
             
         # Read and execute action queue
         functions.queue_cleaner(settings.action_queue)

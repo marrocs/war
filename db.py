@@ -1,2 +1,0 @@
-# list de Objetos
-players = []

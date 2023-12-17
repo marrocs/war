@@ -1,4 +1,4 @@
-import unittest, functions, settings
+import unittest, utils.functions as functions, settings
 from unittest.mock import patch
 from random import randint
 

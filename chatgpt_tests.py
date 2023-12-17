@@ -1,6 +1,6 @@
 import unittest, random
 from unittest.mock import patch
-import functions, models, settings
+import utils.functions as functions, utils.models as models, settings
 
 class TestReceiveGuests(unittest.TestCase):
 
@@ -66,6 +66,40 @@ class TestMenuAction(unittest.TestCase):
 
             # Verificar se a função retorna "400 ERROR"
             self.assertEqual(result, "400 ERROR")
+            
+
+class TestGetAction(unittest.TestCase):
+
+    @patch('builtins.input', side_effect=["10", "3"])
+    def test_invest_action(self, mock_input):
+        player = models.Player(name="TestPlayer", money=100, military=50)
+        return_code = "ACTION 1"
+        result = functions.get_action(player, return_code)
+        self.assertEqual(result, "200 OK")
+
+    @patch('builtins.input', side_effect=["5"])
+    def test_hire_action(self, mock_input):
+        player = models.Player(name="TestPlayer", money=100, military=50)
+        return_code = "ACTION 2"
+        result = functions.get_action(player, return_code)
+        self.assertEqual(result, "200 OK")
+
+    @patch('builtins.input', side_effect=["3", "Player2", "10"])
+    def test_attack_action(self, mock_input):
+        player = models.Player(name="TestPlayer", money=100, military=50)
+        player2 = models.Player(name="Player2", money=100, military=50)
+        settings = {'players_list': [player, player2], 'current_party': [{'round': 1}]}
+        return_code = "ACTION 3"
+        with patch.dict('your_module.settings', settings):  # Substitua 'your_module' pelo nome do seu módulo
+            result = functions.get_action(player, return_code)
+        self.assertEqual(result, "200,OK")
+
+    def test_invalid_action(self):
+        player = models.Player(name="TestPlayer", money=100, military=50)
+        return_code = "ACTION 5"
+        result = functions.get_action(player, return_code)
+        self.assertEqual(result, "400 ERROR")
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -15,12 +15,11 @@ class Party:
     party_id_counter += 1
 
     
-
 class Player:
     def __init__(self, name) -> None:
         self.name = name
         self.money = 100
-        self.military = int(10)
+        self.military = 10
 
     def __repr__(self) -> str:
         return f'Player: {self.name}\nMoney:{self.money}\nMilitary: {self.military}'

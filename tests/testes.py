@@ -71,6 +71,8 @@ debug_process = subprocess.Popen(["python3", FILEPATH], stdin=subprocess.PIPE, s
 # Waits for main.py request input
 time.sleep(1)
 
+
+
 # <-----> 1 - players name <----->
 # <-----> 1.1 - Player 1 <----->
 try:

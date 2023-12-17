@@ -3,7 +3,8 @@ TODO: Implementar uma forma de verificar se o usuario escolhido para ser atacado
 '''
 from models import *
 import settings, logging, sys, traceback
-from math import floor
+from math import floor 
+from random import choice, randint
 
 logging.basicConfig(level=logging.INFO, filename='app.log', format='%(asctime)s - %(levelname)s - %(message)s')
 # Uso: logging.info / logging.warning / logging.error
@@ -15,14 +16,34 @@ def receive_guests() -> str:
         guests_names = []
 
         num_players = int(input("How many players? "))
+        
+        
+        if num_players == 1:            
+            npc_number = int(input("How many NPCs?")) # Problemas aqui. Depois de receber o número retorna ao loop de main
 
-        print(f"\nThere will be {num_players} players \n")
+            
+            print(f"\nThere will be {num_players} player and {npc_number} NPC's \n")
+            
+            for npc in range(npc_number):
+                count = 1
+                guests_names.append(f"machine_"+{str(count)})
+                
+                print("DEBUG - guests names: " + guests_names)
+                
+                count += 1
+    
+        
+        else:    
+
+            print(f"\nThere will be {num_players} players \n")
+
 
         for x in range(num_players):
 
             name = input(f"Player's {x+1} name: ")
             guests_names.append(name)
             print(f"Player {name} registered for party")
+            
             
         # Instanciate Players with names and Append Players to settings.players_list
 
@@ -332,3 +353,91 @@ def queue_cleaner(queue):
     else:
 
         return "200 OK"
+    
+
+def machine_movement(machine):
+        
+    # ----------------------------  Jeito facil - Aleatoriedade ----------------------
+    
+    
+        # O npc deve sortear um número entre 1 e 4. A partir dai deve escrever a propria Action e appendar 
+    
+    # Sorteando primeira ação
+    npc_action = randint(1,4)
+    
+    # Invest
+    if npc_action == 1:
+        
+        # Parametros (Executor, Target, Type, Quantity, ttl)
+        quantity = randint(0, machine.money)
+        ttl = randint(0, 10)
+        
+        # Instanciar objeto
+        machine_action = Action(executor=machine, target=machine, type="invest", quantity=quantity, ttl=ttl)
+        
+        machine.money -= quantity
+        
+        # Appendar na fila de execução
+        settings.action_queue.append(machine_action)
+        
+        logging.info(f"Player: {machine.name}, Action: {machine_action.type}, Succeded: Yes, Message: {machine.name} invested {quantity} for {ttl} turns")
+    
+        
+        return "200 OK"
+    
+    # Hire
+    elif npc_action == 2:
+        
+        # Parametros (Executor, Target, Type, Quantity, ttl)
+        quantity = randint(0, (machine.money/2))
+        
+        # Instanciar objeto
+        machine_action = Action(executor=machine, target=machine, type="hire", quantity=quantity, ttl=2)
+        
+        machine.money -= quantity*2
+        
+        # Appendar na fila de execução
+        settings.action_queue.append(machine_action)
+        
+        logging.info(f"Player: {machine.name}, Action: {machine_action.type}, Succeded: Yes, Message: {machine.name} invested {quantity} for {ttl} turns")
+    
+        
+        return "200 OK"
+    
+    # Attack
+    elif npc_action == 3:
+        
+        # Parametros (Executor, Target, Type, Quantity, ttl)
+        target = choice(settings.players_list)
+        quantity = randint(0, machine.military)
+        
+        # Instanciar objeto
+        machine_action = Action(executor=machine, target=target, type="hire", quantity=quantity, ttl=2)
+        
+        machine.military -= quantity
+        
+        # Appendar na fila de execução
+        settings.action_queue.append(machine_action)
+        
+        logging.info(f"Player: {machine.name}, Action: {machine_action.type}, Succeded: Yes, Message: {machine.name} sent {quantity} units to attack {target.name}")
+    
+        
+        return "200 OK"
+    
+    # Pass
+    elif npc_action == 4:        
+        logging.info(f"Player: {machine.name}, Action: pass")
+    
+        
+        return "200 OK"
+    
+    else:
+        
+        logging.info(f"ERROR: primeira ação do NPC deu erro. Sorteou numero invalido")
+        
+        return "400 ERRO"
+        
+    
+    # ----------------------------  Jeito facil - Alguma inteligencia ----------------------
+    
+    
