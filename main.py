@@ -23,9 +23,6 @@ def main():
         # Get action for every player
         for turn_player in settings.players_list:
             
-            print("olha eu aqui")
-
-            
             if turn_player.name[0:8] == "machine_":
                 functions.machine_movement(turn_player)
 
