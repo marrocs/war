@@ -22,7 +22,7 @@ class Player:
         self.military = 10
 
     def __repr__(self) -> str:
-        return f'Player: {self.name}\nMoney:{self.money}\nMilitary: {self.military}'
+        return f'{self.name}'
     
     def show_infos(self) -> str:
 
@@ -30,6 +30,11 @@ class Player:
         
         return None
 
+    # def get_name(self) -> str:
+        
+    #     print(self.name)
+        
+    #     return None
 
 class Action:
     def __init__(self, round:int, executor, target, type:str, quantity:int, ttl:int) -> None:
@@ -38,7 +43,7 @@ class Action:
         self.executor = executor
         self.target = target
         self.type = type
-        self.quantity = quantity
+        self.quantity = int(quantity)
         self.ttl = ttl
         self.exec_round = int(self.round) + int(self.ttl)
 

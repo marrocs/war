@@ -18,8 +18,6 @@ def main():
 
     while settings.current_party[0].status is True:
 
-        print("Around the world, around-the-wooooorld") # Weird thing happening here: infinity loop. Further code is ignored    
-        
         # Get action for every player
         for turn_player in settings.players_list:
             
