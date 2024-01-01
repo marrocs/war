@@ -39,13 +39,13 @@ class Player:
 class Action:
     def __init__(self, round:int, executor, target, type:str, quantity:int, ttl:int) -> None:
         self.id = action_id_counter
-        self.round = round
+        self.order_round = round
         self.executor = executor
         self.target = target
         self.type = type
         self.quantity = int(quantity)
         self.ttl = ttl
-        self.exec_round = int(self.round) + int(self.ttl)
+        self.exec_round = int(self.order_round) + int(self.ttl)
 
     action_id_counter += 1
 

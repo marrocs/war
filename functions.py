@@ -5,6 +5,7 @@ from models import *
 import settings, logging, sys, traceback
 from math import floor
 from random import choice, randint
+from time import sleep
 
 logging.basicConfig(level=logging.INFO, filename='app.log', format='%(asctime)s @ %(levelname)s @ %(message)s')
 # Uso: logging.info / logging.warning / logging.error
@@ -270,13 +271,12 @@ def attack(action):
     offensive_force = int(action.quantity)
     defensive_army = int(action.target.military)
 
-    print(f"Player's {offensive_player} attack {defensive_player} with {defensive_army} soldiers. ")
+    print(f"Player's {offensive_player} attack {defensive_player} with {offensive_force} soldiers. ")
     logging.info(f"Player: {offensive_player}, Action: {action.type}, Succeded: Yes, Message: Player's {offensive_player} is attacking {defensive_player} with {offensive_force} soldiers.")
-    #logging.info(f"Player: {defensive_player}, Action: defense, Succeded: Yes, Message: Player's {defensive_player} got hit by {offensive_player}")
 
 
     try:
-        if defensive_army == 0:
+        if defensive_army <= 0:
 
             print(f"ENDGAME for {defensive_player}")
 
@@ -291,33 +291,35 @@ def attack(action):
             # Check if there are other players beyond offensive_player. If no, shut party
             
             if len(settings.players_list) == 1:
-                settings.current_party.status = False
-                logging.info(f"ENDGAME - {offensive_force.name} is  the WINNER")
+                
+                settings.current_party[0].winner = offensive_player.name
+
+                logging.info(f"ENDGAME - {offensive_player} is  the WINNER")
                 
                 return "200 OK"
 
 
         else:
 
-            if offensive_force > defensive_army:
+            if int(offensive_force) > int(defensive_army):
                 
                 
                 offensive_survivals = int(offensive_force) - int(defensive_army)
 
                 action.target.military = 0
-                action.executor.military += int(offensive_survivals)
+                action.executor.military += offensive_survivals
 
                 print(f"{action.executor.name} WIN the battle and {offensive_survivals} soldiers has returned from battlefield")
 
                 logging.info(f"Player: {action.executor.name}, Action: {action.type}, Succeded: Yes, Message: {action.executor.name} attack {action.target.name} and WIN")
 
 
-            elif offensive_force < defensive_army:
+            elif int(offensive_force) < int(defensive_army):
                 
                 defensive_survivals = int(defensive_army) - int(offensive_force)
                 action.target.military = defensive_survivals
 
-                print(f"You lost all your soldiers")
+                print(f"{action.executor.name} lost all it's soldiers")
 
                 logging.info(f"Player: {action.executor.name}, Action: {action.type}, Succeded: No, Message: {action.executor.name} attack {action.target.name} and LOST.")
 
@@ -346,27 +348,28 @@ def attack(action):
         return "200 OK"
 
 
-# def call_next_round():
-#     continue
-
-
 def queue_cleaner(queue):
+    
     current_round = int(settings.current_party[0].round)
 
     try:
         for action in queue:
 
             if int(action.exec_round) == int(settings.current_party[0].round):
-                action_to_execute = globals().get(action.type)
+                if action.executor in settings.players_list:
+                    action_to_execute = globals().get(action.type)
 
-                action_to_execute(action)
+                    action_to_execute(action)
 
-                logging.info(f"QUEUE CLEANER: Round {current_round} - Player {action.executor.name} executed a {action.type} action;")
-                settings.action_queue.remove(action)
+                    logging.info(f"QUEUE CLEANER: Round {current_round} - Player's {action.executor.name} action for {action.type} has been executed;")
+                    settings.action_queue.remove(action)
+                
+                else:
+                    queue.remove(action)
 
             else:
                 
-                logging.info(f"QUEUE CLEANER: Round {current_round} - Player {action.executor} action for {action.type} should occour in {current_round - action.exec_round} rounds")
+                logging.info(f"QUEUE CLEANER: Round {current_round} - Player's {action.executor.name} action for {action.type} should occour in round {action.exec_round}")
 
 
     except Exception as error:
@@ -384,6 +387,8 @@ def queue_cleaner(queue):
 def machine_movement(machine):
     
     current_round = int(settings.current_party[0].round)
+    
+    sleep(0.1)
 
         
     # ----------------------------  Jeito facil - Aleatoriedade ----------------------
@@ -397,73 +402,92 @@ def machine_movement(machine):
     # Invest
     if npc_action == 1:
         
-        # Parametros (Executor, Target, Type, Quantity, ttl)
-        quantity = randint(1, (machine.money + 1))
-                
-        # Instanciar objeto
-        machine_action = Action(int(current_round), executor=machine, target=machine, type="invest", quantity=quantity, ttl=randint(1,10))
+        if machine.money >= 1:
         
-        machine.money -= quantity
-        
-        # Appendar na fila de execução
-        settings.action_queue.append(machine_action)
-        
-        logging.info(f"Player: {machine.name}, Action: {machine_action.type}, Succeded: Yes, Message: {machine.name} invested {quantity} for {machine_action.ttl} turns")
-    
-        
-        return "200 OK"
-    
-    # Hire
-    elif npc_action == 2:
-        
-        # Parametros (Executor, Target, Type, Quantity, ttl)
-        quantity = randint(1, floor(machine.money/2))
-        
-        # Instanciar objeto
-        machine_action = Action(current_round, executor=machine, target=machine, type="hire", quantity=quantity, ttl=2)
-        
-        machine.money -= quantity*2
-        
-        # Appendar na fila de execução
-        settings.action_queue.append(machine_action)
-        
-        logging.info(f"Player: {machine.name}, Action: {machine_action.type}, Succeded: Yes, Message: {machine.name} ordered {quantity} soldiers")
-
-        
-        return "200 OK"
-    
-    # Attack
-    elif npc_action == 3:
-        
-        # Parametros (Executor, Target, Type, Quantity, ttl)
-        target = choice(settings.players_list)
-        
-        while target.name == machine.name:
-            target = choice(settings.players_list)
-
-        if machine.military >= 1:
-        
-            quantity = randint(1, (machine.military + 1))
-            
+            # Parametros (Executor, Target, Type, Quantity, ttl)
+            quantity = randint(1, (machine.money + 1))
+                    
             # Instanciar objeto
-            machine_action = Action(current_round, executor=machine, target=target, type="attack", quantity=quantity, ttl=2)
+            machine_action = Action(int(current_round), executor=machine, target=machine, type="invest", quantity=quantity, ttl=randint(1,10))
             
-            machine.military -= quantity
+            machine.money -= quantity
             
             # Appendar na fila de execução
             settings.action_queue.append(machine_action)
             
-            logging.info(f"Player: {machine.name}, Action: {machine_action.type}, Succeded: Yes, Message: {machine.name} sent {quantity} units to attack {target.name}. Action should happen in round {machine_action.round + machine_action.ttl}")
+            logging.info(f"Player: {machine.name}, Action: {machine_action.type}, Succeded: Yes, Message: {machine.name} invested {quantity} for {machine_action.ttl} turns")
         
             
             return "200 OK"
         
         else:
-            print(f"{machine.name} has no soldiers to attack")
-            logging.info(f"Player: {machine.name}, Action: attack, Succeded: No, Message: {machine.name} has no soldiers to attack")
+            
+            print(f"{machine.name} has no money to hire")
+            machine_movement(machine)
+            
+        return "200 OK"
+    
+    # Hire
+    elif npc_action == 2:
+        
+        if machine.money >= 2:
+            # Parametros (Executor, Target, Type, Quantity, ttl)
+            quantity = randint(1, floor(machine.money/2))
+            
+            # Instanciar objeto
+            machine_action = Action(current_round, executor=machine, target=machine, type="hire", quantity=quantity, ttl=2)
+            
+            machine.money -= quantity*2
+            
+            # Appendar na fila de execução
+            settings.action_queue.append(machine_action)
+            
+            logging.info(f"Player: {machine.name}, Action: {machine_action.type}, Succeded: Yes, Message: {machine.name} ordered {quantity} soldiers")
+
+        else:
+            machine_movement(machine)
+               
+            
+        return "200 OK"
+    
+    # Attack
+    elif npc_action == 3:
+        
+        if len(settings.players_list) <= 1:
+            settings.current_party[0].status = False
 
             return "200 OK"
-    
+        
+        else:
+        # Parametros (Executor, Target, Type, Quantity, ttl)
+            target = choice(settings.players_list)
+            
+            while target.name == machine.name:
+                target = choice(settings.players_list)
+
+            if machine.military >= 1:
+            
+                quantity = randint(1, (machine.military + 1))
+                
+                # Instanciar objeto
+                machine_action = Action(current_round, executor=machine, target=target, type="attack", quantity=quantity, ttl=2)
+                
+                machine.military -= quantity
+                
+                # Appendar na fila de execução
+                settings.action_queue.append(machine_action)
+                
+                logging.info(f"Player: {machine.name}, Action: {machine_action.type}, Succeded: Yes, Message: {machine.name} sent {quantity} units to attack {target.name}. Action should happen in round {machine_action.order_round + machine_action.ttl}")
+            
+                
+                return "200 OK"
+            
+            else:
+                print(f"{machine.name} has no soldiers to attack")
+                logging.info(f"Player: {machine.name}, Action: attack, Succeded: No, Message: {machine.name} has no soldiers to attack")
+
+                return "200 OK"
+        
     # Pass
     elif npc_action == 4:        
         logging.info(f"Player: {machine.name}, Action: pass")
@@ -479,3 +503,8 @@ def machine_movement(machine):
         
     
     # ----------------------------  Jeito dificil - Inteligencia ----------------------
+    
+def end_party(party):
+    
+    settings.action_queue.clear()
+    logging.info(f"{party.winner} WINS the game")

@@ -16,6 +16,7 @@ def main():
     functions.create_party(settings.players_list)
 
 
+    #while len(settings.players_list) >= 1:
     while settings.current_party[0].status is True:
 
         # Get action for every player
@@ -33,9 +34,11 @@ def main():
         # After clean action_queue, add 1 to party round
         settings.current_party[0].round += 1
     
-    else:
-        print("ENDGAME")
-        exit()
+    
+    #settings.current_party[0].status = False
+    functions.end_party(settings.current_party[0])
+    print("ENDGAME")
+    exit()
 
 if __name__ == '__main__':
     main()
