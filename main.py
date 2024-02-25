@@ -1,4 +1,4 @@
-import functions, settings
+import utils.functions as functions, settings
 
 
 
