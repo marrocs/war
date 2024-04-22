@@ -1,3 +1,6 @@
+from typing import Any
+
+
 party_id_counter = 1
 action_id_counter = 1
 
@@ -20,15 +23,23 @@ class Player:
         self.name = name
         self.money = 100
         self.military = 10
+        self.civillian = 100
 
     def __repr__(self) -> str:
-        return f'{self.name}'
+        return f"{self.name}"
     
-    def show_infos(self) -> str:
-
-        print(f'Your money: {self.money}\nYour military: {self.military}')
-        
-        return None
+    def main_status(self) -> Any:
+        print(f'''
+              
+        +--------------------------------------------------------+
+        |                                                        |
+        |    PLAYER: {self.name:<25}MONEY: {self.money:<25}|
+        |                                                        |
+        |    CIVILLIAN: {self.civillian:<22}MILITARY: {self.military:<23}|
+        |                                                        |
+        +--------------------------------------------------------+
+              
+              ''')
 
     # def get_name(self) -> str:
         

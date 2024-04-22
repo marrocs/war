@@ -2,13 +2,12 @@
 TODO: Implementar uma forma de verificar se o usuario escolhido para ser atacado existe
 '''
 from utils.models import *
-import settings, logging, sys, traceback
+import settings, logging, sys
 from math import floor
 from random import choice, randint
-from time import sleep
 
-logging.basicConfig(level=logging.INFO, encoding="utf-8", filename=f'./party_info.log', format='%(asctime)s @ %(levelname)s @ %(message)s')
-logging.basicConfig(level=logging.ERROR,encoding="utf-8", filename=f'./party_error.log', format='%(asctime)s @ %(levelname)s @ %(message)s')
+#logging.basicConfig(level=logging.INFO, encoding="utf-8", filename=f'../logs/party_info.log', format='%(asctime)s @ %(levelname)s @ %(message)s')
+logging.basicConfig(level=logging.ERROR,encoding="utf-8", filename=f'./logs/party_error.log', format='%(asctime)s @ %(levelname)s @ %(message)s')
 
 # Uso: logging.info / logging.warning / logging.error
 
@@ -249,9 +248,9 @@ def invest(action):
 
     try:
         invested_value = action.quantity
-        interest_rate = 0.8
+        interest_rate = settings.INTEREST_RATE
         time_investment = action.ttl
-        investment_return = floor((float(invested_value) * float(time_investment) * float(interest_rate)))
+        investment_return = floor((invested_value * time_investment * (interest_rate*100))/100)
 
         action.executor.money += investment_return
                     
@@ -268,7 +267,7 @@ def invest(action):
         return "200 OK"
 
 
-def hire(action):
+def hire_military(action):
 
     try:
         quantity_to_hire = int(action.quantity)
@@ -287,6 +286,25 @@ def hire(action):
         return "200 OK"
 
 
+def hire_civillian(action):
+
+    try:
+        quantity_to_hire = int(action.quantity)
+
+        action.executor.civillian += quantity_to_hire
+        print(f"Good news, {action.executor.name}. The {quantity_to_hire} civillian you requested has arrived.")
+
+
+        logging.info(f"ROUND {settings.current_party[0].round} - Player: {action.executor.name}, Action: {action.type}, Succeded: Yes, Message: {action.executor.name} received {quantity_to_hire} civillian")
+
+    except Exception as error:
+        logging.error(f"Message: Malfunction at hire function; Name: {error.__name__}; Cause: {error.__cause__}; Traceback: {error.__traceback__}")        
+        return "400 ERROR"
+    
+    else:
+        return "200 OK"
+
+
 def attack(action):
     
     try:
@@ -294,6 +312,7 @@ def attack(action):
         defensive_player = action.target
         offensive_force = int(action.quantity)
         defensive_force = int(action.target.military)
+        defensive_civillians = int(action.target.civillian)
 
         print(f"Player's {offensive_player} attack {defensive_player} with {offensive_force} soldiers. ")
         logging.info(f"ROUND {settings.current_party[0].round} - Player: {offensive_player}, Action: {action.type}, Succeded: Yes, Message: Player's {offensive_player} is attacking {defensive_player} with {offensive_force} soldiers.")
@@ -309,36 +328,27 @@ def attack(action):
     
         if defensive_force <= 0:
             
-            print(f"{defensive_player} has no soldiers and DIED")
-            print(f"ENDGAME for {defensive_player}")
-
-            logging.info(f"ROUND {settings.current_party[0].round} - Player: {action.executor.name}, Action: {action.type}, Succeded: Yes, Message: ENDGAME for {defensive_player}")
-
-
-            # Pop loser player from settings.players_list
-            for u in settings.players_list:
-                if u.name == defensive_player.name:
-                    settings.players_list.remove(u)
-                    logging.info(f"ROUND {settings.current_party[0].round} - ADMIN: {u.name} removed from players list")
-                    
-                    for action in settings.action_queue:
-                        
-                        if action.executor == defensive_player.name or action.target == defensive_player.name:
-                            
-                            settings.action_queue.remove(action)
-                            
-                            logging.info(f"ADMIN: all {u.name} actions was cleared")
-                    
+            civillian_loss = floor((offensive_force * ((settings.CIVILIAN_INJURY_RATE)*100))/100)
             
-            # Check if there are other players beyond offensive_player. If aint, shut party
-            if len(settings.players_list) == 1:
-                
-                settings.current_party[0].winner = offensive_player.name
+            
+            print(f"{defensive_player} has no soldiers to defend itself")
+            
+            if civillian_loss > defensive_civillians:
+            
+                print(f"ENDGAME for {defensive_player}")
+                end_party_for_player(defensive_player)
 
-                settings.current_party[0].status = False
+                logging.info(f"ROUND {settings.current_party[0].round} - Player: {action.executor.name}, Action: {action.type}, Succeded: Yes, Message: ENDGAME for {defensive_player}")
                 
-                return "200 OK"
-
+            elif civillian_loss == defensive_civillians:
+                
+                defensive_player.civillian = 0
+                end_party_for_player(defensive_player)
+                
+            else:
+                
+                defensive_player.civillian -= civillian_loss
+                
 
         else:
             
@@ -349,7 +359,8 @@ def attack(action):
 
                 action.target.military = 0
                 action.executor.military += offensive_survivals
-    
+                
+                print(f"TESTE: o numero de soldados de {action.target} deveria ser 0 e é {action.target.military}")
                 print(f"{offensive_survivals} {offensive_player.name}'s soldiers survived and {action.target.name} lost all it's soldiers")
 
                 logging.info(f"ROUND {settings.current_party[0].round} - Player: {action.executor.name}, Action: {action.type}, Succeded: Yes, Message: {action.executor.name} attack {action.target.name} and WIN")
@@ -389,15 +400,16 @@ def attack(action):
         return "200 OK"
 
 
-def queue_cleaner(queue):
-    
-    try:
-        current_round = int(settings.current_party[0].round)
+def parser(queue):  
 
-    
+    try:
+        
+        current_party = settings.current_party
+        
+        # Tarefa de limpar a fila de ações
         for action in queue:
 
-            if int(action.exec_round) == int(settings.current_party[0].round):
+            if action.exec_round == current_party[0].round:
                 if action.executor in settings.players_list:
                     action_to_execute = globals().get(action.type)
 
@@ -405,14 +417,16 @@ def queue_cleaner(queue):
 
                     logging.info(f"ROUND {settings.current_party[0].round} - QUEUE CLEANER: Player's {action.executor.name} action for {action.type} has been executed;")
                     settings.action_queue.remove(action)
+                    return "200 OK"
                 
                 else:
                     queue.remove(action)
+                    return "200 OK"
 
             else:
-                
-                #logging.info(f"QUEUE CLEANER: Round {current_round} - Player's {action.executor.name} action for {action.type} should occour in round {action.exec_round}")
+                #logging.info(f"QUEUE CLEANER: Round {settings.current_party[0].round} - Player's {action.executor.name} action for {action.type} should occour in round {action.exec_round}")
                 pass
+
 
     except Exception as error:
 
@@ -422,23 +436,19 @@ def queue_cleaner(queue):
     else:
 
         return "200 OK"
-    
+
 
 def machine_movement(machine):
     
     try:
-        current_round = int(settings.current_party[0].round)
-        
-        #sleep(0.1)
-
+        current_round = settings.current_party[0].round
             
         # ----------------------------  Jeito facil - Aleatoriedade ----------------------
-        
-        
-            # O npc deve sortear um número entre 1 e 4. A partir dai deve escrever a propria Action e appendar 
+     
+        # O npc deve sortear um número entre 1 e 5. A partir dai deve escrever a propria Action e appendar 
         
         # Sorteando primeira ação
-        npc_action = randint(1,4)
+        npc_action = randint(1,5)
         
         # Invest
         if npc_action == 1:
@@ -446,7 +456,7 @@ def machine_movement(machine):
             if machine.money >= 1:
             
                 # Parametros (Executor, Target, Type, Quantity, ttl)
-                quantity = randint(1, (machine.money + 1))
+                quantity = randint(1, floor(machine.money))
                         
                 # Instanciar objeto
                 machine_action = Action(int(current_round), executor=machine, target=machine, type="invest", quantity=quantity, ttl=randint(1,10))
@@ -467,17 +477,44 @@ def machine_movement(machine):
                 
             return "200 OK"
         
-        # Hire
+        # Hire military
         elif npc_action == 2:
             
-            if machine.money >= 2:
-                # Parametros (Executor, Target, Type, Quantity, ttl)
-                quantity = randint(1, floor(machine.money/2))  # TODO: 
+            military_price = settings.MILITARY_PRICE
+            maximum_military_player_can_buy=floor(machine.money/military_price)
+            quantity = randint(1, maximum_military_player_can_buy)  # TODO: 
+            
+            if quantity <= maximum_military_player_can_buy:                 
                 
                 # Instanciar objeto
-                machine_action = Action(current_round, executor=machine, target=machine, type="hire", quantity=quantity, ttl=2)
+                machine_action = Action(current_round, executor=machine, target=machine, type="hire_military", quantity=quantity, ttl=2)
                 
-                machine.money -= quantity*2
+                machine.money -= (quantity*military_price)
+                
+                # Appendar na fila de execução
+                settings.action_queue.append(machine_action)
+                
+                logging.info(f"ROUND {settings.current_party[0].round} - Player: {machine.name}, Action: {machine_action.type}, Succeded: Yes, Message: {machine.name} ordered {quantity} soldiers")
+
+            else:
+                machine_movement(machine)
+                
+                
+            return "200 OK"
+        
+        # Hire civillian
+        elif npc_action == 3:
+            
+            civillian_price = settings.CIVILLIAN_PRICE
+            maximum_civillian_player_can_buy=floor(machine.money/civillian_price)
+            quantity = randint(1, maximum_civillian_player_can_buy)  
+            
+            if quantity <= maximum_civillian_player_can_buy:                
+                
+                # Instanciar objeto
+                machine_action = Action(current_round, executor=machine, target=machine, type="hire_civillian", quantity=quantity, ttl=2)
+                
+                machine.money -= (quantity*civillian_price)
                 
                 # Appendar na fila de execução
                 settings.action_queue.append(machine_action)
@@ -491,22 +528,20 @@ def machine_movement(machine):
             return "200 OK"
         
         # Attack
-        elif npc_action == 3:
+        elif npc_action == 4:
             
-            if len(settings.players_list) <= 1:
-                settings.current_party[0].status = False
-            
-            else:
             # Parametros (Executor, Target, Type, Quantity, ttl)
+            target = choice(settings.players_list)
+            
+            while target.name == machine.name:
                 target = choice(settings.players_list)
-                
-                while target.name == machine.name:
-                    target = choice(settings.players_list)
 
-                if machine.military >= 1:
+            if machine.military >= 1:
+            
+                quantity = randint(1, (machine.military + 1))
                 
-                    quantity = randint(1, (machine.military + 1))
-                    
+                if quantity <= machine.military:
+                
                     # Instanciar objeto
                     machine_action = Action(current_round, executor=machine, target=target, type="attack", quantity=quantity, ttl=2)
                     
@@ -521,34 +556,73 @@ def machine_movement(machine):
                     return "200 OK"
                 
                 else:
+                    
+                    print("TESTE: TA TENTANDO ATACAR COM MAIS SOLDADOS DO QUE TEM")
+            
+            else:
                     logging.info(f"ROUND {settings.current_party[0].round} - Player: {machine.name}, Action: attack, Succeded: No, Message: {machine.name} has no soldiers to attack")
 
                     return "200 OK"
             
         # Pass
-        elif npc_action == 4:        
+        elif npc_action == 5:        
             logging.info(f"ROUND {settings.current_party[0].round} - Player: {machine.name}, Action: pass")
         
-        
+        # Erro
         else:
             
             logging.info(f"ERROR: primeira ação do NPC deu erro. Sorteou numero invalido")
             
             return "400 ERRO"
             
+            
+            
+        # ----------------------------  Jeito dificil - Inteligencia simples ----------------------
+        #machine_decision.
+
+
     except Exception as error:
-        logging.error(f"Message: Malfunction at invest function; Name: {error.__name__}; Cause: {error.__cause__}; Traceback: {error.__traceback__}")        
+        logging.error(f"Message: Malfunction at machine_movement function; Traceback: {error.__traceback__}")        
         return "400 ERROR"
     
     else:
         
         return "200 OK"
 
+
+def bill_atributes(players):
+    
+    try:
+        
+        for p in players:
+            
+            # <--------------------------------------------------------------------->
+            # Update revenue produced by civillians
+            civillian_produtivity = settings.CIVILIAN_PRODUCTIVITY
+            revenue = floor((p.civillian * (civillian_produtivity*100))/100)
+            p.money += revenue
+            
+                
+            # <--------------------------------------------------------------------->
+            # Charge for military maintance
+            military_maintance = settings.MILITARY_MAINTANCE
+            military_bill = floor((p.military*(military_maintance*100))/100)
+            
+            p.money -= military_bill         
+            
+    except Exception as error:
+        logging.error(f"Message: Malfunction at invest function; Name: {error.__name__}; Cause: {error.__cause__}; Traceback: {error.__traceback__}")        
+        return "400 ERROR"
+    
+    else:
+        return "200 OK"
+    
        
-def end_party(party):
+def shut_party(party):
     
     try:
         settings.action_queue.clear()
+        settings.current_party[0].status = False
         logging.info(f"{party.winner} WINS the game")
         print(f"{settings.current_party[0].winner} WINS THE PARTY")
         
@@ -561,12 +635,19 @@ def end_party(party):
     return "200 OK"
 
 
-# def imprimir_retangulo(num_caracteres):
-#     # Calcula o número mais próximo de linhas e colunas para formar um retângulo aproximadamente quadrado
-#     num_linhas = int(num_caracteres**0.5)
-#     num_colunas = num_caracteres // num_linhas
-
-#     # Imprime o retângulo
-#     for _ in range(num_linhas):
-#         print("*" * num_colunas)
-        
+def end_party_for_player(player):
+    
+    # Pop loser player from settings.players_list
+    for u in settings.players_list:
+        if u.name == player.name:
+            settings.players_list.remove(u)
+            logging.info(f"ROUND {settings.current_party[0].round} - ADMIN: {u.name} removed from players list")
+            
+            for action in settings.action_queue:
+                
+                if action.executor == player.name or action.target == player.name:
+                    
+                    settings.action_queue.remove(action)
+                    
+                    logging.info(f"ADMIN: all {u.name} actions was cleared")
+            
