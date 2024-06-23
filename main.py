@@ -25,6 +25,13 @@ def main():
 
         print(f"\n\n -----> This is Round {settings.current_party[0].round} <-----\n")
         
+        
+        # TASK: Read and execute orders in line
+        functions.parser(settings.action_queue)
+        
+        # TASK: bill players for civillian and military maintance
+        functions.bill_atributes(settings.players_list)
+        
         # TASK: Get orders
         for turn_player in settings.players_list:
             
@@ -35,12 +42,6 @@ def main():
                 functions.get_action(turn_player, functions.menu_action(turn_player))
                 
             print(turn_player.main_status())
-            
-        # TASK: Read and execute orders in line
-        functions.parser(settings.action_queue)
-        
-        # TASK: bill players for civillian and military maintance
-        functions.bill_atributes(settings.players_list)
         
         # TASK: Check if there are other players on party
         if len(settings.players_list) == 1:
